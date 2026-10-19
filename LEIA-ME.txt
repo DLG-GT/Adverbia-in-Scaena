@@ -1,20 +1,38 @@
-ADVERBIA IN SCAENA — PROTÓTIPO ATUALIZADO / ELENCO
+ADVERBIA IN SCAENA — PACOTE COMPLETO
+Versão do pacote: 19/10/2026
 
-Esta versão atualiza a seção “A Companhia” com o registro da Phantom Troupe e mantém o protótipo de uma questão demonstrativa.
+ARQUIVOS INCLUÍDOS
+- index.html — página de entrada, conceito e seção da Phantom Troupe.
+- style.css — visual principal do site.
+- quiz.css — visual das regras, perguntas, cronômetro, feedback e resultado final.
+- script.js — motor do quiz completo para uma sessão local.
+- perguntas.js — banco de 81 questões, carregado antes do motor.
+- perguntas.json — cópia legível dos dados para revisão.
+- auditoria_banco.txt — contagens e verificações estruturais do banco.
 
-ARQUIVOS
-- index.html: página principal e apresentações do elenco.
-- style.css: identidade visual gótica/editorial e estilos responsivos.
-- script.js: regras demonstrativas, questão com cronômetro, seleção de alternativa e pontuação provisória.
+COMO ABRIR
+1. Baixe e extraia o ZIP inteiro para uma única pasta.
+2. Mantenha todos os arquivos na mesma pasta e com estes nomes.
+3. Abra index.html no Chrome, Edge ou Firefox.
+4. Role até a seção da equipe e clique em “Ver as regras”.
+5. Clique em “Começar o quiz”.
 
-COMO TESTAR
-1. Extraia o ZIP para uma pasta no computador.
-2. Mantenha index.html, style.css e script.js juntos na mesma pasta.
-3. Abra index.html no Chrome ou outro navegador moderno.
-4. Role até “A Companhia” para ver os registros do elenco.
-5. Clique em “Consultar as regras” e depois em “Testar uma questão” para experimentar o protótipo.
+O QUE FUNCIONA
+- Navegação sequencial pelas 81 questões.
+- Apresentação da fonte, autor/atribuição, obra e link quando disponível no banco.
+- Quatro alternativas nas questões objetivas.
+- Cronômetro de 30 segundos para objetivas e 5 minutos para discursivas.
+- Confirmação de alternativa e marcação quando a escolha foi alterada.
+- Pontos objetivos, bônus de rapidez de até 50 pontos e penalidade de 30 pontos após mudança de alternativa.
+- Registro das respostas discursivas, rubricas e respostas orientativas para correção manual.
+- Resumo final com acertos, pontos e revisão das respostas.
+- Identidade visual original gótica/editorial e registros dos cinco integrantes.
 
-IMPORTANTE
-- Este projeto ainda não é multiplayer: cada navegador funciona de forma independente.
-- A questão, a pontuação e as penalidades são demonstrativas/provisórias; não representam ainda a implementação completa do quiz de 81 questões.
-- Nenhum arquivo é publicado automaticamente. Teste esta versão antes de substituir arquivos no site publicado.
+LIMITAÇÕES
+- Este é um protótipo local. Não há multiplayer nem sincronização entre Chromebooks/dispositivos.
+- As respostas não são gravadas num servidor nem preservadas após atualizar/fechar a página.
+- As discursivas não recebem nota automática; cabe ao professor corrigi-las.
+- As verificações executadas foram estruturais (sintaxe do JavaScript, formato/contagem do banco e integridade dos arquivos). As perguntas, redações e fontes ainda precisam de revisão humana antes de uso oficial.
+
+PUBLICAÇÃO NO GITHUB PAGES
+Faça upload/substituição dos sete arquivos do pacote na raiz do repositório. O index.html já carrega perguntas.js antes de script.js e usa identificadores de versão nos CSS/JS para reduzir problemas de cache. Depois do commit, confira a execução em GitHub Actions e teste a versão pública.

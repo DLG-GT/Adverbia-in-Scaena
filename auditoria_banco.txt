@@ -1,0 +1,26 @@
+Auditoria do banco — Adverbia in Scaena
+Data: 2026-10-19
+Questões totais: 81
+Objetivas: 76
+Discursivas: 20, 40, 60, 80, 81
+IDs consecutivos de 1 a 81: SIM
+Fonte preenchida em todas as questões: SIM
+Todas as objetivas têm quatro alternativas e gabarito válido: SIM
+Distribuição das respostas corretas:
+  A: 18
+  B: 19
+  C: 20
+  D: 19
+Sinais de comprimento das alternativas:
+  Correta é a única mais longa: 7 de 76
+  Correta empata como mais longa: 25
+  Correta não é a mais longa: 44
+  Correta é a mais curta: 31
+  Amplitude média de palavras entre as 4 opções: 1.79
+  IDs em que a correta é a única alternativa mais longa: 33, 38, 45, 52, 57, 74, 79
+Tipos de fonte:
+  Provérbio tradicional: 68
+  Citação literária: 11
+  Fala de personagem: 2
+Questão 81 preservada: SIM
+Nota: a revisão de conteúdo e das fontes deve ser feita antes da publicação. A integração ao motor do site ainda não foi feita.
