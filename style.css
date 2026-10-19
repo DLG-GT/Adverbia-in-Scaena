@@ -127,6 +127,13 @@ h1 em { display: block; margin: 17px 0 0 clamp(32px, 8vw, 116px); color: var(--p
 .cast-number { color: var(--red-light); font: 14px var(--display); }
 .cast-row h3 { margin: 0; color: var(--paper); font: 400 23px/1 var(--display); }
 .cast-row p { margin: 7px 0 0; color: var(--muted); font: 10px/1.6 var(--body); }
+.cast-row > div { min-width: 0; }
+.cast-row p.cast-log-title { margin-top: 9px; color: var(--red-light); font: 7px/1.5 var(--mono); letter-spacing: .09em; }
+.cast-row p.cast-message { max-width: 470px; margin-top: 6px; color: var(--paper-dim); font: 10px/1.7 var(--body); }
+.cast-report { display: grid; gap: 6px; max-width: 440px; margin: 20px 0 0 57px; padding: 13px 15px 12px; border-left: 2px solid var(--red-light); background: rgba(232,223,207,.035); }
+.cast-report-label { margin-bottom: 2px; color: var(--red-light); font: 7px/1.5 var(--mono); letter-spacing: .1em; }
+.cast-report strong { color: var(--paper); font: 500 13px/1.3 var(--display); }
+.cast-report p { margin: 3px 0 0; color: var(--muted); font: italic 12px/1.5 var(--display); }
 .cast-status { align-self: start; padding-top: 4px; color: #9b8262; font: 7px var(--mono); letter-spacing: .08em; white-space: nowrap; }
 .cast-note { max-width: 370px; margin: 19px 0 0 57px; color: #a69b8b; font: italic 13px/1.6 var(--display); }
 .cast-note span { color: var(--red-light); }
@@ -150,7 +157,7 @@ h1 em { display: block; margin: 17px 0 0 clamp(32px, 8vw, 116px); color: var(--p
   .cast-sheet { grid-template-columns: minmax(220px,.85fr) minmax(0,1.15fr); gap: 28px; }
   .cast-row, .cast-list-heading { grid-template-columns: 29px 1fr; gap: 12px; }
   .cast-status { grid-column: 2; margin-top: -3px; }
-  .cast-note { margin-left: 41px; }
+  .cast-report { margin-left: 41px; }
 }
 @media (max-width: 650px) {
   .site-head { padding: 13px 20px; gap: 14px; }
@@ -202,7 +209,7 @@ h1 em { display: block; margin: 17px 0 0 clamp(32px, 8vw, 116px); color: var(--p
   .cast-row h3 { font-size: 22px; }
   .cast-row p { font-size: 10px; }
   .cast-status { grid-column: 2; }
-  .cast-note { margin-left: 40px; }
+  .cast-report { margin-left: 40px; }
   .enter-row { align-items: start; flex-direction: column; margin-top: 35px; }
   #iniciar { min-height: 44px; }
   .site-footer { flex-wrap: wrap; padding: 15px 20px; font-size: 7px; }

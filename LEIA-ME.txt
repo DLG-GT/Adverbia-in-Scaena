@@ -1,0 +1,20 @@
+ADVERBIA IN SCAENA — PROTÓTIPO ATUALIZADO / ELENCO
+
+Esta versão atualiza a seção “A Companhia” com o registro da Phantom Troupe e mantém o protótipo de uma questão demonstrativa.
+
+ARQUIVOS
+- index.html: página principal e apresentações do elenco.
+- style.css: identidade visual gótica/editorial e estilos responsivos.
+- script.js: regras demonstrativas, questão com cronômetro, seleção de alternativa e pontuação provisória.
+
+COMO TESTAR
+1. Extraia o ZIP para uma pasta no computador.
+2. Mantenha index.html, style.css e script.js juntos na mesma pasta.
+3. Abra index.html no Chrome ou outro navegador moderno.
+4. Role até “A Companhia” para ver os registros do elenco.
+5. Clique em “Consultar as regras” e depois em “Testar uma questão” para experimentar o protótipo.
+
+IMPORTANTE
+- Este projeto ainda não é multiplayer: cada navegador funciona de forma independente.
+- A questão, a pontuação e as penalidades são demonstrativas/provisórias; não representam ainda a implementação completa do quiz de 81 questões.
+- Nenhum arquivo é publicado automaticamente. Teste esta versão antes de substituir arquivos no site publicado.
