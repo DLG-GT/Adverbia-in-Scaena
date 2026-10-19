@@ -54,3 +54,21 @@
 
 /* Avanço automático entre questões */
 .sc-auto-next { margin:16px 0 0; color:#cdb58c; font:9px/1.7 "IBM Plex Mono","Courier New",monospace; letter-spacing:.04em; }
+
+
+/* Identificação do participante e classificação por ato */
+.sc-name-label { display:block; margin:16px 0 8px; color:#b3976b; font:9px "IBM Plex Mono","Courier New",monospace; letter-spacing:.08em; text-transform:uppercase; }
+.sc-name-input { display:block; width:min(100%,520px); min-height:46px; padding:12px 14px; border:1px solid rgba(232,223,207,.3); background:#201d19; color:#e8dfcf; font:14px Manrope,Arial,sans-serif; }
+.sc-name-input:focus { outline:1px solid #b3976b; border-color:#b3976b; }
+.sc-board-section { margin:28px 0 16px; }
+.sc-board-section h3 { margin:0 0 14px; color:#e8dfcf; font:400 28px/1.1 "Cormorant Garamond",Georgia,serif; }
+.sc-board-empty { color:#9d907f; font-size:12px; line-height:1.7; }
+.sc-board-wrap { max-width:100%; overflow-x:auto; border-top:1px solid rgba(232,223,207,.2); }
+.sc-board { width:100%; border-collapse:collapse; font-size:12px; }
+.sc-board th { color:#b3976b; font:8px "IBM Plex Mono","Courier New",monospace; letter-spacing:.08em; text-align:left; padding:12px 10px; border-bottom:1px solid rgba(232,223,207,.2); text-transform:uppercase; }
+.sc-board td { color:#c2b7a5; padding:12px 10px; border-bottom:1px solid rgba(232,223,207,.12); }
+.sc-board td:first-child { color:#b3976b; width:36px; }
+.sc-board td strong { color:#e8dfcf; font-weight:600; }
+.sc-board tr.is-current-player { background:rgba(140,57,62,.16); }
+.sc-board tr.is-current-player td:nth-child(2) { color:#f1dfbd; }
+@media(max-width:520px) { .sc-board th,.sc-board td { padding:10px 7px; } .sc-board { font-size:11px; } }

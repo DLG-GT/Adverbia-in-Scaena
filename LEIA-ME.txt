@@ -39,3 +39,11 @@ Faça upload/substituição dos sete arquivos do pacote na raiz do repositório.
 
 
 Avanço automático: depois de registrar uma resposta, o feedback aparece e o quiz avança sozinho para a questão seguinte após 5 segundos nas objetivas ou 8 segundos nas discursivas. O botão “Avançar agora” permite pular a espera. Se o participante fechar o modal durante o feedback, a contagem pausa e continua ao reabrir.
+
+
+PLACAR POR PARTICIPANTE E POR ATO
+- Antes de começar, cada participante informa seu nome ou apelido.
+- Ao fim das questões 20, 40, 60 e 80, o jogo salva a pontuação e mostra a classificação geral.
+- O placar é armazenado no localStorage deste navegador e dispositivo; participantes podem se revezar no mesmo aparelho.
+- Para sincronizar nomes e pontos entre celulares/computadores diferentes, é necessário conectar um backend (por exemplo, Firebase/Supabase) e configurar permissões. Esta versão não faz sincronização online.
+- Ao jogar novamente com o mesmo nome, o resultado anterior desse participante é substituído progressivamente pelo novo percurso.

@@ -53,6 +53,71 @@
     let correctCount = 0;
     let objectiveCount = 0;
     let hasStarted = false;
+    let participantName = "";
+    let actBreakVisible = false;
+    const LEADERBOARD_KEY = "adverbiaInScaenaLeaderboardV1";
+
+    function loadLeaderboard() {
+      try {
+        const value = JSON.parse(window.localStorage.getItem(LEADERBOARD_KEY) || "[]");
+        return Array.isArray(value) ? value : [];
+      } catch (error) {
+        console.warn("Placar local indisponível neste navegador.", error);
+        return [];
+      }
+    }
+
+    function saveLeaderboard(entries) {
+      try {
+        window.localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(entries));
+        return true;
+      } catch (error) {
+        console.warn("Não foi possível salvar o placar neste navegador.", error);
+        return false;
+      }
+    }
+
+    function participantKey(name) {
+      return String(name || "").trim().toLocaleLowerCase("pt-BR");
+    }
+
+    function leaderboardMarkup(currentAct = null) {
+      const entries = loadLeaderboard().sort((a, b) =>
+        (Number(b.totalPoints) || 0) - (Number(a.totalPoints) || 0) ||
+        (Number(b.correctCount) || 0) - (Number(a.correctCount) || 0) ||
+        String(a.name).localeCompare(String(b.name), "pt-BR")
+      );
+      if (!entries.length) return '<p class="sc-board-empty">O placar ainda está vazio. Os resultados aparecerão aqui ao fim de cada ato.</p>';
+      return `<div class="sc-board-wrap"><table class="sc-board"><thead><tr><th>#</th><th>Participante</th>${currentAct ? `<th>Ato ${currentAct}</th>` : ""}<th>Pontos acumulados</th></tr></thead><tbody>${entries.map((entry, index) => {
+        const actScore = currentAct && entry.acts ? entry.acts[String(currentAct)] : null;
+        return `<tr${participantKey(entry.name) === participantKey(participantName) ? ' class="is-current-player"' : ""}><td>${index + 1}</td><td>${escapeHtml(entry.name || "Participante")}</td>${currentAct ? `<td>${actScore ? Number(actScore.points) : "—"}</td>` : ""}<td><strong>${Number(entry.totalPoints) || 0}</strong></td></tr>`;
+      }).join("")}</tbody></table></div>`;
+    }
+
+    function saveActScore(actNumber, finished = false) {
+      const all = loadLeaderboard();
+      const key = participantKey(participantName);
+      let entry = all.find(item => participantKey(item.name) === key);
+      if (!entry) {
+        entry = { name: participantName, acts: {}, totalPoints: 0, correctCount: 0, completed: false };
+        all.push(entry);
+      }
+      const startId = (actNumber - 1) * 20 + 1;
+      const endId = actNumber * 20;
+      const actRecords = records.filter(item => item.id >= startId && item.id <= endId && item.tipo === "multipla_escolha");
+      entry.name = participantName;
+      entry.acts = entry.acts || {};
+      entry.acts[String(actNumber)] = {
+        points: actRecords.reduce((sum, item) => sum + (Number(item.pontos) || 0), 0),
+        correct: actRecords.filter(item => item.correta).length,
+        answered: actRecords.length
+      };
+      entry.totalPoints = totalPoints;
+      entry.correctCount = correctCount;
+      entry.updatedAt = new Date().toISOString();
+      if (finished) entry.completed = true;
+      saveLeaderboard(all);
+    }
 
     const modal = document.createElement("section");
     modal.id = "sc-regras";
@@ -85,9 +150,12 @@
             </div>
           </div>
           <div class="sc-experiment-note">
-            <span class="sc-edicao">MODO DE TESTE LOCAL</span>
-            <p>Esta versão roda neste navegador. As respostas e a pontuação não são enviadas a um servidor, não sincronizam entre participantes e serão perdidas se a página for recarregada.</p>
+            <span class="sc-edicao">IDENTIFICAÇÃO DO PARTICIPANTE</span>
+            <label class="sc-name-label" for="sc-participant-name">Seu nome ou apelido</label>
+            <input id="sc-participant-name" class="sc-name-input" maxlength="40" autocomplete="nickname" placeholder="Digite seu nome para entrar no placar">
+            <p>Ao fim de cada ato, o placar será atualizado com o nome e a pontuação acumulada. Os resultados ficam salvos somente neste navegador e dispositivo.</p>
             <button id="sc-comecar" type="button" class="sc-primary">Começar o quiz <span aria-hidden="true">↗</span></button>
+            <div class="sc-board-section"><h3>Placar geral deste dispositivo</h3><div id="sc-rules-board">${leaderboardMarkup()}</div></div>
           </div>
         </div>
         <div id="sc-view-quiz" hidden></div>
@@ -394,11 +462,62 @@
       clearAutoAdvance(false);
       autoAdvanceRemainingMs = 5000;
       if (currentIndex >= questions.length - 1) {
+        saveActScore(4, true);
+        renderSummary();
+        return;
+      }
+      const finishedAct = [20, 40, 60, 80].includes(currentQuestion?.id);
+      if (finishedAct && !actBreakVisible) {
+        actBreakVisible = true;
+        const actNumber = currentQuestion.id / 20;
+        saveActScore(actNumber);
+        renderActLeaderboard(actNumber);
+        return;
+      }
+      advanceToNextQuestion();
+    }
+
+    function advanceToNextQuestion() {
+      clearAutoAdvance(false);
+      autoAdvanceRemainingMs = 5000;
+      actBreakVisible = false;
+      if (currentIndex >= questions.length - 1) {
         renderSummary();
         return;
       }
       currentIndex += 1;
       renderQuestion();
+    }
+
+    function renderActLeaderboard(actNumber) {
+      stopTimer(false);
+      setView("game");
+      const actNames = {
+        1: "Fundamentos",
+        2: "O sentido por trás das palavras",
+        3: "Entre o sentido e a intenção",
+        4: "A última interpretação"
+      };
+      const actRecords = records.filter(item => item.id >= (actNumber - 1) * 20 + 1 && item.id <= actNumber * 20 && item.tipo === "multipla_escolha");
+      const actPoints = actRecords.reduce((sum, item) => sum + (Number(item.pontos) || 0), 0);
+      quizView.innerHTML = `
+        <div class="sc-cabecalho">
+          <span class="sc-edicao">ATO ${actNumber} CONCLUÍDO · PLACAR ATUALIZADO</span>
+          <h2>Fim do ato.<br><em>As posições mudam.</em></h2>
+          <p>${escapeHtml(participantName)}, você terminou “${escapeHtml(actNames[actNumber])}”. O placar foi atualizado com sua pontuação.</p>
+        </div>
+        <div class="sc-summary-grid">
+          <div class="sc-summary-stat"><strong>${actPoints}</strong><span>PONTOS NESTE ATO</span></div>
+          <div class="sc-summary-stat"><strong>${totalPoints}</strong><span>PONTOS ACUMULADOS</span></div>
+          <div class="sc-summary-stat"><strong>${correctCount}/${objectiveCount}</strong><span>ACERTOS OBJETIVOS</span></div>
+        </div>
+        <div class="sc-board-section"><h3>Classificação geral</h3>${leaderboardMarkup(actNumber)}</div>
+        <p class="sc-provisional">O placar reúne participantes que jogaram neste mesmo navegador. Para compartilhar a classificação entre diferentes aparelhos, será necessário conectar um banco de dados ou serviço de servidor.</p>
+        <div class="sc-quiz-actions"><button id="sc-continue-act" type="button" class="sc-primary">${actNumber === 4 ? "Ir para a questão especial 81" : `Continuar para o Ato ${actNumber + 1}`} <span aria-hidden="true">↗</span></button><button id="sc-close-act" type="button" class="sc-secondary">Fechar e continuar depois</button></div>`;
+      quizView.querySelector("#sc-continue-act").addEventListener("click", advanceToNextQuestion);
+      quizView.querySelector("#sc-close-act").addEventListener("click", closeModal);
+      const rulesBoard = modal.querySelector("#sc-rules-board");
+      if (rulesBoard) rulesBoard.innerHTML = leaderboardMarkup();
     }
 
     function renderSummary() {
@@ -410,14 +529,15 @@
         <div class="sc-cabecalho">
           <span class="sc-edicao">FIM DA ENCENAÇÃO · RESULTADO LOCAL</span>
           <h2>As cortinas<br><em>se fecham.</em></h2>
-          <p>Você chegou ao fim das 81 questões. Veja seu resultado objetivo e quais respostas ainda precisam de correção.</p>
+          <p>${escapeHtml(participantName)}, você chegou ao fim das 81 questões. Veja sua pontuação e as respostas que ainda precisam de correção.</p>
         </div>
         <div class="sc-summary-grid">
           <div class="sc-summary-stat"><strong>${correctCount}/${objectiveCount}</strong><span>ACERTOS OBJETIVOS</span></div>
           <div class="sc-summary-stat"><strong>${totalPoints}</strong><span>PONTOS OBJETIVOS</span></div>
           <div class="sc-summary-stat"><strong>${discursiveRecords.length}/5</strong><span>DISCURSIVAS REGISTRADAS</span></div>
         </div>
-        <p class="sc-provisional">O resultado considera somente as questões objetivas. As cinco discursivas precisam ser corrigidas pelo professor. O placar é local e não é compartilhado com outros participantes.</p>
+        <p class="sc-provisional">O resultado considera somente as questões objetivas. As cinco discursivas precisam ser corrigidas pelo professor. O placar fica salvo neste navegador e pode reunir vários participantes que joguem neste mesmo dispositivo.</p>
+        <div class="sc-board-section"><h3>Placar geral</h3>${leaderboardMarkup()}</div>
         <div class="sc-summary-list">
           <details class="sc-rubric"><summary>Revisar as questões objetivas (${review.length})</summary>
             ${review.map(item => `<div class="sc-summary-item"><strong>Questão ${item.id} · ${item.correta ? "Acerto" : "Erro ou sem resposta"}</strong><br>Marcada: ${escapeHtml(item.resposta || "Sem resposta")} — ${escapeHtml(item.respostaTexto)}<br>Pontos: ${item.pontos > 0 ? "+" : ""}${item.pontos}</div>`).join("")}
@@ -426,15 +546,41 @@
             ${discursiveRecords.sort((a,b)=>a.id-b.id).map(item => { const q=questions.find(x=>x.id===item.id); return `<div class="sc-summary-item"><strong>Questão ${item.id} · Correção pendente</strong><br>${escapeHtml(item.resposta || "Sem resposta") }<details class="sc-rubric"><summary>Ver rubrica e resposta orientativa</summary>${Array.isArray(q.rubrica) ? `<ul>${q.rubrica.map(r=>`<li>${escapeHtml(r)}</li>`).join("")}</ul>` : ""}<p>${escapeHtml(q.respostaEsperada || "")}</p></details></div>`; }).join("")}
           </details>
         </div>
-        <div class="sc-quiz-actions"><button id="sc-reiniciar" type="button" class="sc-primary">Começar de novo <span aria-hidden="true">↻</span></button><button id="sc-sair" type="button" class="sc-secondary">Fechar</button></div>`;
-      summaryView.querySelector("#sc-reiniciar").addEventListener("click", startGame);
+        <div class="sc-quiz-actions"><button id="sc-novo-participante" type="button" class="sc-primary">Registrar outro participante <span aria-hidden="true">↻</span></button><button id="sc-sair" type="button" class="sc-secondary">Fechar</button></div>`;
+      summaryView.querySelector("#sc-novo-participante").addEventListener("click", prepareNewParticipant);
       summaryView.querySelector("#sc-sair").addEventListener("click", closeModal);
     }
 
+    function prepareNewParticipant() {
+      stopTimer(false);
+      clearAutoAdvance(false);
+      participantName = "";
+      actBreakVisible = false;
+      setView("rules");
+      modal.hidden = false;
+      const nameInput = modal.querySelector("#sc-participant-name");
+      if (nameInput) { nameInput.value = ""; nameInput.focus(); }
+      const rulesBoard = modal.querySelector("#sc-rules-board");
+      if (rulesBoard) rulesBoard.innerHTML = leaderboardMarkup();
+    }
+
     function startGame() {
+      const nameInput = modal.querySelector("#sc-participant-name");
+      const requestedName = String(nameInput?.value || "").trim();
+      if (!requestedName) {
+        window.alert("Digite seu nome ou apelido antes de começar, para aparecer no placar.");
+        nameInput?.focus();
+        return;
+      }
+      participantName = requestedName.slice(0, 40);
+      const existing = loadLeaderboard().filter(item => participantKey(item.name) !== participantKey(participantName));
+      saveLeaderboard(existing);
+      const rulesBoard = modal.querySelector("#sc-rules-board");
+      if (rulesBoard) rulesBoard.innerHTML = leaderboardMarkup();
       stopTimer(false);
       clearAutoAdvance(false);
       autoAdvanceRemainingMs = 5000;
+      actBreakVisible = false;
       currentIndex = 0;
       currentQuestion = null;
       currentChoice = null;
@@ -456,7 +602,9 @@
       modal.hidden = false;
       document.body.style.overflow = "hidden";
       setView(viewMode);
-      if (viewMode === "game" && !feedbackVisible) startTimer();
+      if (viewMode === "game" && actBreakVisible) {
+        // A classificação de fim de ato aguarda o clique explícito para continuar.
+      } else if (viewMode === "game" && !feedbackVisible) startTimer();
       else if (viewMode === "game" && feedbackVisible) scheduleAutoAdvance(autoAdvanceRemainingMs);
       if (viewMode === "rules") modal.querySelector("#sc-comecar").focus();
       else if (viewMode === "game") modal.querySelector("#sc-close").focus();
@@ -489,7 +637,9 @@
         acertosObjetivos: correctCount,
         pontosObjetivos: totalPoints,
         respostasRegistradas: records.length,
-        iniciado: hasStarted
+        iniciado: hasStarted,
+        participante: participantName,
+        placarLocal: loadLeaderboard()
       })
     };
   });
