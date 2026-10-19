@@ -36,3 +36,6 @@ LIMITAÇÕES
 
 PUBLICAÇÃO NO GITHUB PAGES
 Faça upload/substituição dos sete arquivos do pacote na raiz do repositório. O index.html já carrega perguntas.js antes de script.js e usa identificadores de versão nos CSS/JS para reduzir problemas de cache. Depois do commit, confira a execução em GitHub Actions e teste a versão pública.
+
+
+Avanço automático: depois de registrar uma resposta, o feedback aparece e o quiz avança sozinho para a questão seguinte após 5 segundos nas objetivas ou 8 segundos nas discursivas. O botão “Avançar agora” permite pular a espera. Se o participante fechar o modal durante o feedback, a contagem pausa e continua ao reabrir.

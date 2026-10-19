@@ -42,6 +42,10 @@
     let remainingMs = 0;
     let deadline = null;
     let timerId = null;
+    let autoAdvanceTimerId = null;
+    let autoAdvanceCountdownId = null;
+    let autoAdvanceDeadline = null;
+    let autoAdvanceRemainingMs = 5000;
     let feedbackVisible = false;
     let viewMode = "rules";
     let records = [];
@@ -315,10 +319,11 @@
       let resultMarkup;
 
       if (objective) {
-        const headline = record.correta ? "Resposta correta." : (record.resposta === "Sem resposta" ? "Tempo encerrado." : "Não foi desta vez.");
+        const noAnswer = !record.resposta || record.resposta === "Sem resposta";
+        const headline = record.correta ? "Resposta correta." : (noAnswer ? "Tempo encerrado." : "Não foi desta vez.");
         resultMarkup = `<div class="sc-result" aria-live="polite">
           <h3>${headline}</h3>
-          <p>${record.resposta === "Sem resposta" ? "Nenhuma alternativa foi confirmada antes do fim do tempo." : `Sua resposta: ${escapeHtml(record.resposta)} — ${escapeHtml(record.respostaTexto)}.`}</p>
+          <p>${noAnswer ? "Nenhuma alternativa foi confirmada antes do fim do tempo." : `Sua resposta: ${escapeHtml(record.resposta)} — ${escapeHtml(record.respostaTexto)}.`}</p>
           <p>Resposta esperada: <strong>${escapeHtml(question.respostaCorreta)} — ${escapeHtml(correctAlternative?.texto || "")}</strong></p>
           <p>${escapeHtml(question.justificativa || "Consulte a fonte e releia o enunciado para revisar a resposta.")}</p>
           <p class="sc-result-score">PONTOS NESTA QUESTÃO: ${record.pontos > 0 ? "+" : ""}${record.pontos} · BÔNUS: +${record.bonus} · PENALIDADE: −${record.penalidade}</p>
@@ -336,14 +341,58 @@
         </div>`;
       }
 
-      quizView.innerHTML = `${questionHeader(question)}<div class="sc-question-card">${sourceMarkup(question)}<p class="sc-prompt">${escapeHtml(question.enunciado)}</p>${resultMarkup}<div class="sc-quiz-actions"><button id="sc-proxima" type="button" class="sc-primary">${question.id >= questions.length ? "Ver resultado" : "Próxima questão"} <span aria-hidden="true">↗</span></button><button id="sc-finalizar" type="button" class="sc-secondary">Fechar e voltar depois</button></div></div>`;
+      const delayMs = objective ? 5000 : 8000;
+      const nextText = question.id >= questions.length
+        ? "O resultado final aparece"
+        : `A questão ${String(question.id + 1).padStart(2, "0")} vem a seguir`;
+      quizView.innerHTML = `${questionHeader(question)}<div class="sc-question-card">${sourceMarkup(question)}<p class="sc-prompt">${escapeHtml(question.enunciado)}</p>${resultMarkup}<p id="sc-auto-next" class="sc-auto-next" aria-live="polite">${nextText} em ${Math.ceil(delayMs / 1000)} segundos…</p><div class="sc-quiz-actions"><button id="sc-proxima" type="button" class="sc-primary">${question.id >= questions.length ? "Ver resultado agora" : "Avançar agora"} <span aria-hidden="true">↗</span></button><button id="sc-finalizar" type="button" class="sc-secondary">Fechar e continuar depois</button></div></div>`;
       const statusLabel = quizView.querySelector("#sc-timer-label");
       if (statusLabel) statusLabel.textContent = record.expirou ? "TEMPO" : "REGISTRADA";
       quizView.querySelector("#sc-proxima").addEventListener("click", nextQuestion);
       quizView.querySelector("#sc-finalizar").addEventListener("click", closeModal);
+      scheduleAutoAdvance(delayMs);
+    }
+
+    function clearAutoAdvance(preserveRemaining = false) {
+      if (preserveRemaining && autoAdvanceDeadline !== null) {
+        autoAdvanceRemainingMs = Math.max(0, autoAdvanceDeadline - performance.now());
+      }
+      if (autoAdvanceTimerId !== null) window.clearTimeout(autoAdvanceTimerId);
+      if (autoAdvanceCountdownId !== null) window.clearInterval(autoAdvanceCountdownId);
+      autoAdvanceTimerId = null;
+      autoAdvanceCountdownId = null;
+      autoAdvanceDeadline = null;
+    }
+
+    function scheduleAutoAdvance(delayMs = autoAdvanceRemainingMs) {
+      clearAutoAdvance(false);
+      autoAdvanceRemainingMs = Math.max(0, delayMs);
+      if (!feedbackVisible || modal.hidden || viewMode !== "game") return;
+
+      const label = quizView.querySelector("#sc-auto-next");
+      const isFinal = currentQuestion && currentQuestion.id >= questions.length;
+      const baseText = isFinal ? "O resultado final aparece" : `A questão ${String((currentQuestion?.id || 0) + 1).padStart(2, "0")} vem a seguir`;
+      const updateCountdown = () => {
+        const seconds = Math.ceil(autoAdvanceRemainingMs / 1000);
+        if (label) label.textContent = `${baseText} em ${seconds} ${seconds === 1 ? "segundo" : "segundos"}…`;
+      };
+
+      autoAdvanceDeadline = performance.now() + autoAdvanceRemainingMs;
+      updateCountdown();
+      autoAdvanceCountdownId = window.setInterval(() => {
+        autoAdvanceRemainingMs = Math.max(0, autoAdvanceDeadline - performance.now());
+        updateCountdown();
+      }, 200);
+      autoAdvanceTimerId = window.setTimeout(() => {
+        clearAutoAdvance(false);
+        autoAdvanceRemainingMs = 5000;
+        nextQuestion();
+      }, autoAdvanceRemainingMs);
     }
 
     function nextQuestion() {
+      clearAutoAdvance(false);
+      autoAdvanceRemainingMs = 5000;
       if (currentIndex >= questions.length - 1) {
         renderSummary();
         return;
@@ -371,7 +420,7 @@
         <p class="sc-provisional">O resultado considera somente as questões objetivas. As cinco discursivas precisam ser corrigidas pelo professor. O placar é local e não é compartilhado com outros participantes.</p>
         <div class="sc-summary-list">
           <details class="sc-rubric"><summary>Revisar as questões objetivas (${review.length})</summary>
-            ${review.map(item => `<div class="sc-summary-item"><strong>Questão ${item.id} · ${item.correta ? "Acerto" : "Erro ou sem resposta"}</strong><br>Marcada: ${escapeHtml(item.resposta)} — ${escapeHtml(item.respostaTexto)}<br>Pontos: ${item.pontos > 0 ? "+" : ""}${item.pontos}</div>`).join("")}
+            ${review.map(item => `<div class="sc-summary-item"><strong>Questão ${item.id} · ${item.correta ? "Acerto" : "Erro ou sem resposta"}</strong><br>Marcada: ${escapeHtml(item.resposta || "Sem resposta")} — ${escapeHtml(item.respostaTexto)}<br>Pontos: ${item.pontos > 0 ? "+" : ""}${item.pontos}</div>`).join("")}
           </details>
           <details class="sc-rubric"><summary>Ver respostas discursivas para correção (${discursiveRecords.length})</summary>
             ${discursiveRecords.sort((a,b)=>a.id-b.id).map(item => { const q=questions.find(x=>x.id===item.id); return `<div class="sc-summary-item"><strong>Questão ${item.id} · Correção pendente</strong><br>${escapeHtml(item.resposta || "Sem resposta") }<details class="sc-rubric"><summary>Ver rubrica e resposta orientativa</summary>${Array.isArray(q.rubrica) ? `<ul>${q.rubrica.map(r=>`<li>${escapeHtml(r)}</li>`).join("")}</ul>` : ""}<p>${escapeHtml(q.respostaEsperada || "")}</p></details></div>`; }).join("")}
@@ -384,6 +433,8 @@
 
     function startGame() {
       stopTimer(false);
+      clearAutoAdvance(false);
+      autoAdvanceRemainingMs = 5000;
       currentIndex = 0;
       currentQuestion = null;
       currentChoice = null;
@@ -406,12 +457,14 @@
       document.body.style.overflow = "hidden";
       setView(viewMode);
       if (viewMode === "game" && !feedbackVisible) startTimer();
+      else if (viewMode === "game" && feedbackVisible) scheduleAutoAdvance(autoAdvanceRemainingMs);
       if (viewMode === "rules") modal.querySelector("#sc-comecar").focus();
       else if (viewMode === "game") modal.querySelector("#sc-close").focus();
     }
 
     function closeModal() {
       stopTimer(true);
+      if (feedbackVisible) clearAutoAdvance(true);
       modal.hidden = true;
       document.body.style.overflow = "";
       startButton.focus();

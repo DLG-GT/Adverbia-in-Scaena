@@ -24,3 +24,10 @@ Tipos de fonte:
   Fala de personagem: 2
 Questão 81 preservada: SIM
 Nota: a revisão de conteúdo e das fontes deve ser feita antes da publicação. A integração ao motor do site ainda não foi feita.
+
+Comportamento do quiz:
+  Avanço automático após envio: SIM (objetivas: 5 s; discursivas: 8 s)
+  Botão opcional para avançar imediatamente: SIM
+  Contagem do avanço pausa ao fechar durante o feedback: SIM
+  Cache busting atualizado no index.html: SIM
+  Sintaxe JavaScript conferida com node --check: SIM

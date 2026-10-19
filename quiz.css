@@ -51,3 +51,6 @@
 @media(prefers-reduced-motion:reduce){.sc-progress-track span{transition:none}}
 .sc-timer-track { height:3px; margin:12px 0 25px; background:#3a3029; overflow:hidden; }
 .sc-timer-track span { display:block; height:100%; width:100%; background:#a45453; transition:width .1s linear; }
+
+/* Avanço automático entre questões */
+.sc-auto-next { margin:16px 0 0; color:#cdb58c; font:9px/1.7 "IBM Plex Mono","Courier New",monospace; letter-spacing:.04em; }
