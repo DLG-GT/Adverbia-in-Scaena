@@ -47,3 +47,14 @@ PLACAR POR PARTICIPANTE E POR ATO
 - O placar é armazenado no localStorage deste navegador e dispositivo; participantes podem se revezar no mesmo aparelho.
 - Para sincronizar nomes e pontos entre celulares/computadores diferentes, é necessário conectar um backend (por exemplo, Firebase/Supabase) e configurar permissões. Esta versão não faz sincronização online.
 - Ao jogar novamente com o mesmo nome, o resultado anterior desse participante é substituído progressivamente pelo novo percurso.
+
+
+PERFIS POR SENHA — ATUALIZAÇÃO 21/10/2026
+- A entrada agora solicita nickname e senha. O nickname continua sendo o nome exibido no placar.
+- Senha da Genei Ryodan: genei-ryodan.
+- Senha temporária do modo de observação da professora: SCENA-26-PROF.
+- Sem senha reconhecida, o participante joga normalmente, sem personalização especial.
+- Com a senha da Genei Ryodan, nomes cadastrados (DLG, dentrixz, fabemz, vesselnick e rique_jss) recebem títulos e mensagens próprios; outros nicknames recebem o perfil genérico da equipe.
+- A senha de professora ativa mensagens de observação para os quatro atos e para o resultado final, qualquer que seja o nickname digitado.
+- Para alterar as senhas, edite ACCESS_PASSWORDS no início de script.js. As senhas diferenciam maiúsculas/minúsculas; espaços antes/depois são ignorados.
+- AVISO: GitHub Pages publica JavaScript para todos. Senhas escritas em script.js podem ser vistas no código-fonte e não protegem conteúdo nem concedem segurança real. São apenas chaves de personalização. Para senhas privadas de verdade, será necessário um backend com autenticação.

@@ -34,6 +34,95 @@
       Especial: "QUESTÃO ESPECIAL · O ÚLTIMO ATO"
     };
 
+    // Códigos temporários de demonstração. Troque-os antes de publicar.
+    // Em GitHub Pages, senhas no JavaScript são visíveis no código-fonte; não são segurança real.
+    const ACCESS_PASSWORDS = {
+      ryodan: "genei-ryodan",
+      professor: "shirleigr"
+    };
+
+    const GENERIC_RYODAN_PROFILE = {
+      title: "Membro da Genei Ryodan",
+      welcome: "A senha foi reconhecida. Seu nome pode ser qualquer um: a senha é que abre as portas da Genei Ryodan.",
+      acts: {
+        1: "O primeiro ato testa os fundamentos. Observe cada palavra como uma peça no tabuleiro.",
+        2: "No segundo ato, o sentido começa a se deslocar. A aranha segue em frente sem perder o fio.",
+        3: "No terceiro ato, intenção e contexto entram em conflito. Analise antes de agir.",
+        4: "O último ato exige precisão. Um detalhe pode decidir toda a interpretação."
+      },
+      ending: "Você chegou ao fim da encenação. A Genei Ryodan reconhece quem atravessou os quatro atos até a última questão."
+    };
+
+    const MEMBER_PROFILES = {
+      dlg: {
+        title: "O Diretor da Cena",
+        welcome: "A encenação começa sob seu olhar. Cada escolha altera o ritmo do próximo ato.",
+        acts: {
+          1: "O primeiro ato prepara o palco. A estratégia começa pelos fundamentos.",
+          2: "Agora, o sentido exige mais do que uma leitura rápida: é hora de observar o contexto.",
+          3: "Intenção e interpretação se enfrentam. Conduza a cena sem perder nenhum detalhe.",
+          4: "A última interpretação coloca a estratégia à prova. O desfecho está próximo."
+        },
+        ending: "As cortinas se fecham, mas a direção da cena permanece com você. O percurso está registrado."
+      },
+      dentrixz: {
+        title: "A Lâmina Silenciosa",
+        welcome: "Nem todo silêncio é ausência de resposta. A sua primeira cena começa agora.",
+        acts: {
+          1: "Fundamentos firmes: a precisão silenciosa vale mais que a pressa.",
+          2: "O sentido se esconde nos detalhes. Leia o que a frase revela — e o que deixa implícito.",
+          3: "A intenção pode estar fora da superfície. Corte as interpretações precipitadas.",
+          4: "A etapa final pede precisão. Uma escolha cuidadosa pode mudar tudo."
+        },
+        ending: "A última cena terminou. Sua precisão deixa marcas no resultado final."
+      },
+      fabemz: {
+        title: "O Estrategista dos Detalhes",
+        welcome: "Uma pequena mudança pode alterar toda a frase. O tabuleiro está aberto.",
+        acts: {
+          1: "O plano começa com os fundamentos. Repare no que cada advérbio modifica.",
+          2: "As peças mudam de posição: compare sentidos antes de escolher.",
+          3: "Este ato recompensa quem percebe nuances entre intenção e efeito.",
+          4: "A última etapa é o teste do plano. Cada detalhe conta."
+        },
+        ending: "Plano concluído. O resultado reúne cada decisão tomada ao longo dos atos."
+      },
+      vesselnick: {
+        title: "O Observador do Contexto",
+        welcome: "O contexto revela aquilo que as palavras, sozinhas, não contam.",
+        acts: {
+          1: "Observe as bases antes de avançar. O contexto começa a se formar aqui.",
+          2: "Uma mesma frase pode mudar de direção conforme o contexto. Investigue essa mudança.",
+          3: "Olhe para a intenção por trás da construção: a superfície nem sempre basta.",
+          4: "A última leitura exige visão do conjunto, não apenas de uma palavra isolada."
+        },
+        ending: "A observação terminou com a última questão. O conjunto das escolhas compõe o resultado."
+      },
+      rique_jss: {
+        title: "O Último Movimento",
+        welcome: "Toda encenação guarda um movimento decisivo. Descubra onde ele acontece.",
+        acts: {
+          1: "Todo movimento precisa de base. Comece pelos fundamentos e siga com atenção.",
+          2: "O sentido ganha movimento quando o contexto entra em cena.",
+          3: "As interpretações se cruzam. Escolha com cuidado o próximo movimento.",
+          4: "Este é o último ato: a precisão de cada movimento será colocada à prova."
+        },
+        ending: "Último movimento concluído. O percurso chega ao fim e o resultado fica registrado."
+      }
+    };
+
+    const PROFESSOR_OBSERVER_PROFILE = {
+      title: "Shirlei · Professora observadora",
+      welcome: "Modo de observação ativado. Acompanhe as interpretações e veja como o contexto transforma o sentido.",
+      acts: {
+        1: "Observação do Ato I: acompanhe se os participantes identificam os fundamentos antes de avançar.",
+        2: "Observação do Ato II: repare nas justificativas e nas mudanças de sentido provocadas pelo contexto.",
+        3: "Observação do Ato III: note como intenção, escolha linguística e interpretação se relacionam.",
+        4: "Observação do Ato IV: este é o momento de acompanhar a síntese do que foi estudado."
+      },
+      ending: "Fim da observação. O percurso completo está disponível para uma conversa de revisão com a turma."
+    };
+
     let currentIndex = 0;
     let currentQuestion = null;
     let currentChoice = null;
@@ -54,6 +143,8 @@
     let objectiveCount = 0;
     let hasStarted = false;
     let participantName = "";
+    let participantRole = "guest";
+    let participantProfile = null;
     let actBreakVisible = false;
     const LEADERBOARD_KEY = "adverbiaInScaenaLeaderboardV1";
 
@@ -79,6 +170,33 @@
 
     function participantKey(name) {
       return String(name || "").trim().toLocaleLowerCase("pt-BR");
+    }
+
+    function normalizeIdentity(name) {
+      return String(name || "").trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+    }
+
+    function identifyRole(password) {
+      const candidate = String(password || "").trim();
+      if (candidate && candidate === ACCESS_PASSWORDS.professor) return "professor";
+      if (candidate && candidate === ACCESS_PASSWORDS.ryodan) return "ryodan";
+      return "guest";
+    }
+
+    function roleProfileMessage(stage, actNumber = 1) {
+      if (participantRole === "guest") return "";
+      const profile = participantRole === "professor"
+        ? PROFESSOR_OBSERVER_PROFILE
+        : (participantProfile || GENERIC_RYODAN_PROFILE);
+      const message = stage === "welcome"
+        ? profile.welcome
+        : stage === "final"
+          ? profile.ending
+          : (profile.acts[actNumber] || profile.welcome);
+      const label = participantRole === "professor"
+        ? "MODO DE OBSERVAÇÃO"
+        : "GENEI RYODAN · PERFIL RECONHECIDO";
+      return `<aside class="sc-role-message" aria-live="polite"><span class="sc-role-label">${escapeHtml(label)}</span><strong>${escapeHtml(profile.title)}</strong><p>${escapeHtml(message)}</p></aside>`;
     }
 
     function leaderboardMarkup(currentAct = null) {
@@ -151,9 +269,17 @@
           </div>
           <div class="sc-experiment-note">
             <span class="sc-edicao">IDENTIFICAÇÃO DO PARTICIPANTE</span>
-            <label class="sc-name-label" for="sc-participant-name">Seu nome ou apelido</label>
-            <input id="sc-participant-name" class="sc-name-input" maxlength="40" autocomplete="nickname" placeholder="Digite seu nome para entrar no placar">
-            <p>Ao fim de cada ato, o placar será atualizado com o nome e a pontuação acumulada. Os resultados ficam salvos somente neste navegador e dispositivo.</p>
+            <div class="sc-identity-grid">
+              <div class="sc-identity-field">
+                <label class="sc-name-label" for="sc-participant-name">Seu nome ou apelido</label>
+                <input id="sc-participant-name" class="sc-name-input" maxlength="40" autocomplete="nickname" placeholder="Digite seu nickname">
+              </div>
+              <div class="sc-identity-field">
+                <label class="sc-name-label" for="sc-participant-password">Senha de acesso</label>
+                <input id="sc-participant-password" class="sc-name-input" type="password" maxlength="80" autocomplete="off" placeholder="Senha da equipe ou da professora">
+              </div>
+            </div>
+            <p>A senha reconhecida ativa o perfil da Genei Ryodan ou o modo de observação da professora, independentemente do nickname. Sem uma senha reconhecida, você joga normalmente, sem personalização especial.</p>
             <button id="sc-comecar" type="button" class="sc-primary">Começar o quiz <span aria-hidden="true">↗</span></button>
             <div class="sc-board-section"><h3>Placar geral deste dispositivo</h3><div id="sc-rules-board">${leaderboardMarkup()}</div></div>
           </div>
@@ -242,6 +368,7 @@
         : `<label class="sc-discursive-label" for="sc-resposta">SUA RESPOSTA</label><textarea id="sc-resposta" class="sc-discursive" rows="6" placeholder="Escreva sua interpretação aqui…" aria-label="Resposta discursiva"></textarea><p class="sc-choice-status">As discursivas ficam pendentes para correção do professor.</p>`;
 
       quizView.innerHTML = `${questionHeader(question)}
+        ${currentIndex === 0 ? roleProfileMessage("welcome") : ""}
         <div class="sc-question-card">
           <div class="sc-question-meta"><span>${escapeHtml(question.fonte?.tipo || "TEXTO-BASE")}</span><span>${objective ? "30 SEGUNDOS" : "5 MINUTOS"}</span></div>
           <div class="sc-timer-track" aria-hidden="true"><span id="sc-timer-bar"></span></div>
@@ -462,7 +589,7 @@
       clearAutoAdvance(false);
       autoAdvanceRemainingMs = 5000;
       if (currentIndex >= questions.length - 1) {
-        saveActScore(4, true);
+        if (participantRole !== "professor") saveActScore(4, true);
         renderSummary();
         return;
       }
@@ -470,7 +597,7 @@
       if (finishedAct && !actBreakVisible) {
         actBreakVisible = true;
         const actNumber = currentQuestion.id / 20;
-        saveActScore(actNumber);
+        if (participantRole !== "professor") saveActScore(actNumber);
         renderActLeaderboard(actNumber);
         return;
       }
@@ -500,12 +627,22 @@
       };
       const actRecords = records.filter(item => item.id >= (actNumber - 1) * 20 + 1 && item.id <= actNumber * 20 && item.tipo === "multipla_escolha");
       const actPoints = actRecords.reduce((sum, item) => sum + (Number(item.pontos) || 0), 0);
+      const actEdition = participantRole === "professor"
+        ? `MODO DE OBSERVAÇÃO · ATO ${actNumber}`
+        : `ATO ${actNumber} CONCLUÍDO · PLACAR ATUALIZADO`;
+      const actTitle = participantRole === "professor"
+        ? "A cena continua.<br><em>O olhar acompanha.</em>"
+        : "Fim do ato.<br><em>As posições mudam.</em>";
+      const actDescription = participantRole === "professor"
+        ? `${escapeHtml(participantName)}, você está acompanhando o fim de “${escapeHtml(actNames[actNumber])}” no modo de observação.`
+        : `${escapeHtml(participantName)}, você terminou “${escapeHtml(actNames[actNumber])}”. O placar foi atualizado com sua pontuação.`;
       quizView.innerHTML = `
         <div class="sc-cabecalho">
-          <span class="sc-edicao">ATO ${actNumber} CONCLUÍDO · PLACAR ATUALIZADO</span>
-          <h2>Fim do ato.<br><em>As posições mudam.</em></h2>
-          <p>${escapeHtml(participantName)}, você terminou “${escapeHtml(actNames[actNumber])}”. O placar foi atualizado com sua pontuação.</p>
+          <span class="sc-edicao">${actEdition}</span>
+          <h2>${actTitle}</h2>
+          <p>${actDescription}</p>
         </div>
+        ${roleProfileMessage("act", actNumber)}
         <div class="sc-summary-grid">
           <div class="sc-summary-stat"><strong>${actPoints}</strong><span>PONTOS NESTE ATO</span></div>
           <div class="sc-summary-stat"><strong>${totalPoints}</strong><span>PONTOS ACUMULADOS</span></div>
@@ -527,16 +664,17 @@
       const review = records.filter(item => item.tipo === "multipla_escolha").sort((a, b) => a.id - b.id);
       summaryView.innerHTML = `
         <div class="sc-cabecalho">
-          <span class="sc-edicao">FIM DA ENCENAÇÃO · RESULTADO LOCAL</span>
-          <h2>As cortinas<br><em>se fecham.</em></h2>
-          <p>${escapeHtml(participantName)}, você chegou ao fim das 81 questões. Veja sua pontuação e as respostas que ainda precisam de correção.</p>
+          <span class="sc-edicao">${participantRole === "professor" ? "FIM DA OBSERVAÇÃO · REGISTRO LOCAL" : "FIM DA ENCENAÇÃO · RESULTADO LOCAL"}</span>
+          <h2>${participantRole === "professor" ? "A observação<br><em>se conclui.</em>" : "As cortinas<br><em>se fecham.</em>"}</h2>
+          <p>${participantRole === "professor" ? `${escapeHtml(participantName)}, você acompanhou o percurso no modo de observação. Esta sessão não será registrada no placar dos alunos.` : `${escapeHtml(participantName)}, você chegou ao fim das 81 questões. Veja sua pontuação e as respostas que ainda precisam de correção.`}</p>
         </div>
+        ${roleProfileMessage("final")}
         <div class="sc-summary-grid">
           <div class="sc-summary-stat"><strong>${correctCount}/${objectiveCount}</strong><span>ACERTOS OBJETIVOS</span></div>
           <div class="sc-summary-stat"><strong>${totalPoints}</strong><span>PONTOS OBJETIVOS</span></div>
           <div class="sc-summary-stat"><strong>${discursiveRecords.length}/5</strong><span>DISCURSIVAS REGISTRADAS</span></div>
         </div>
-        <p class="sc-provisional">O resultado considera somente as questões objetivas. As cinco discursivas precisam ser corrigidas pelo professor. O placar fica salvo neste navegador e pode reunir vários participantes que joguem neste mesmo dispositivo.</p>
+        <p class="sc-provisional">${participantRole === "professor" ? "As respostas registradas nesta sessão de observação não entram no placar. As discursivas continuam disponíveis para consulta e correção." : "O resultado considera somente as questões objetivas. As cinco discursivas precisam ser corrigidas pelo professor. O placar fica salvo neste navegador e pode reunir vários participantes que joguem neste mesmo dispositivo."}</p>
         <div class="sc-board-section"><h3>Placar geral</h3>${leaderboardMarkup()}</div>
         <div class="sc-summary-list">
           <details class="sc-rubric"><summary>Revisar as questões objetivas (${review.length})</summary>
@@ -555,17 +693,22 @@
       stopTimer(false);
       clearAutoAdvance(false);
       participantName = "";
+      participantRole = "guest";
+      participantProfile = null;
       actBreakVisible = false;
       setView("rules");
       modal.hidden = false;
       const nameInput = modal.querySelector("#sc-participant-name");
+      const passwordInput = modal.querySelector("#sc-participant-password");
       if (nameInput) { nameInput.value = ""; nameInput.focus(); }
+      if (passwordInput) passwordInput.value = "";
       const rulesBoard = modal.querySelector("#sc-rules-board");
       if (rulesBoard) rulesBoard.innerHTML = leaderboardMarkup();
     }
 
     function startGame() {
       const nameInput = modal.querySelector("#sc-participant-name");
+      const passwordInput = modal.querySelector("#sc-participant-password");
       const requestedName = String(nameInput?.value || "").trim();
       if (!requestedName) {
         window.alert("Digite seu nome ou apelido antes de começar, para aparecer no placar.");
@@ -573,8 +716,14 @@
         return;
       }
       participantName = requestedName.slice(0, 40);
-      const existing = loadLeaderboard().filter(item => participantKey(item.name) !== participantKey(participantName));
-      saveLeaderboard(existing);
+      participantRole = identifyRole(passwordInput?.value);
+      participantProfile = participantRole === "ryodan"
+        ? (MEMBER_PROFILES[normalizeIdentity(participantName)] || GENERIC_RYODAN_PROFILE)
+        : null;
+      if (participantRole !== "professor") {
+        const existing = loadLeaderboard().filter(item => participantKey(item.name) !== participantKey(participantName));
+        saveLeaderboard(existing);
+      }
       const rulesBoard = modal.querySelector("#sc-rules-board");
       if (rulesBoard) rulesBoard.innerHTML = leaderboardMarkup();
       stopTimer(false);
@@ -639,6 +788,7 @@
         respostasRegistradas: records.length,
         iniciado: hasStarted,
         participante: participantName,
+        perfil: participantRole,
         placarLocal: loadLeaderboard()
       })
     };
